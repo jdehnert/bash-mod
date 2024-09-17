@@ -1,0 +1,13 @@
+# .bash_docker
+if [[ $TERM_DEBUG ]]; then
+  echo .bash_docker
+fi
+
+# Configuration for the Docker environment
+##########################################
+if [ -e /usr/local/bin/docker ]; then
+  alias d='docker'
+  alias dps='docker ps'
+  alias dr='docker run'
+  alias dex='docker exec'
+fi

@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+# .bash_macos
+#set -o xtrace
+
+# Turn on dotfile debuging
+# export TERM_DEBUG=TRUE
+# Turn off dotfile debuging
+export -n TERM_DEBUG
+
+if [[ $TERM_DEBUG ]]; then
+  echo "${home}/${BASH_SOURCE[0]}"
+fi
+
+# This file is for shell variables and settings that arte specific
+# to macOS
+ARCH=$(uname -p)
+
+# Silence the apple zsh message
+export BASH_SILENCE_DEPRECATION_WARNING=1
+
+# iTerm2 integration
+# shellcheck source=/home/jdehnert:/Users/jdehnert/.iterm2_shell_integration.bash
+[[ -e "${home}"/.iterm2_shell_integration.bash ]] && . "${home}"/.iterm2_shell_integration.bash
+
+# Set some paths based on where Homebrew is located
+if [[ "${ARCH}" == arm ]] && [[ "${OSTYPE}" =~ ^darwin ]] ; then
+  if [[ -d /opt/homebrew/bin ]] ; then
+    path-prepend /opt/homebrew/bin
+  fi
+  if [[ -d /opt/homebrew/share/man ]] ; then
+    path-prepend /opt/homebrew/share/man/ MANPATH
+  fi
+fi
+
+# install homebrew if it's missing
+if ! command -v brew >/dev/null 2>&1 ; then
+  ptintf "Installing %s\n" Homebrew
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+if [[ -f "${home}/.Brewfile" ]]; then
+  echo "Updating homebrew bundle"
+  brew bundle --global
+fi
+
+# Add tab completion to terraform
+if [[ -e /opt/homebrew/bin/terraform ]]; then
+  complete -C /opt/homebrew/bin/terraform terraform
+fi
+
+# Add tab completion to 
+if [[ -e /opt/homebrew/bin/terraform ]]; then
+  complete -C /opt/homebrew/bin/terraform terraform
+fi
+
+# Add bash completion (now from homebrew since macos defaults to zsh now )
+if [[ -d "/opt/homebrew/etc/bash_completion.d" ]]; then
+   for SRV in $(/opt/homebrew/etc/bash_completion.d/*) ; do
+     [[ -r "${SRV}" ]] && source "${SRV}"
+  done
+fi
+
+
+# Run this if we have broot installed
+if command -v broot >/dev/null 2>&1 ; then
+  if [[ -r "${HOME}"/.config/broot/launcher/bash/br ]]; then
+      source "${HOME}"/.config/broot/launcher/bash/br
+  fi
+fi
+
+#echo "macOS configuration"
+# Add `killall` tab completion for common apps
+complete -o "nospace" -W "Finder Dock Mail Safari Music Calendar Address\ Book SystemUIServer" killall
+
+# Add tab completion for`defaults read|write NSGlobalDomain`
+# You could just use `-g` instead, but I like being explicit
+complete -W "NSGlobalDomain" defaults
+
+# Hide homebrew hints
+#export HOMEBREW_NO_ENV_HINTS
+
+# Python on the Mac
+# Prepend this directory to our PATH to access Python vurtual env tools
+# if they have been installed.  (use python installed from https://www.python.org/downloads/)
+if [[ -d "${home}/Library/Python/3.12/bin" ]]; then
+  path-prepend ${home}/Library/Python/3.12/bin
+fi
